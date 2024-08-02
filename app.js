@@ -16,10 +16,20 @@ app.get('/', (req, res) => {
 // Route đăng ký người dùng
 app.post('/register', (req, res) => {
     const { name, email, password } = req.body;
+
+    // Kiểm tra xem dữ liệu có đầy đủ không
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+
+    // Mã hóa mật khẩu
     const hashedPassword = bcrypt.hashSync(password, 10);
+
     const query = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
+
     db.run(query, [name, email, hashedPassword], function (err) {
         if (err) {
+            console.error('Error inserting user:', err.message);
             return res.status(400).json({ error: err.message });
         }
         res.json({ id: this.lastID });
@@ -29,7 +39,9 @@ app.post('/register', (req, res) => {
 // Route đăng nhập
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
+
     const query = `SELECT * FROM users WHERE email = ?`;
+
     db.get(query, [email], (err, user) => {
         if (err) {
             return res.status(400).json({ error: err.message });
