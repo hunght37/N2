@@ -1,21 +1,47 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const app = express();
 const port = 3000;
 const db = require('./database');
 
-// Middleware để xử lý JSON và URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware để phục vụ các tệp tĩnh từ thư mục 'public'
 app.use(express.static('public'));
 
-// Route chính để gửi tệp HTML
+// Route chính
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
-// Route để thêm người dùng mới
+// Route đăng ký người dùng
+app.post('/register', (req, res) => {
+    const { name, email, password } = req.body;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const query = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
+    db.run(query, [name, email, hashedPassword], function (err) {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        res.json({ id: this.lastID });
+    });
+});
+
+// Route đăng nhập
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const query = `SELECT * FROM users WHERE email = ?`;
+    db.get(query, [email], (err, user) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (!user || !bcrypt.compareSync(password, user.password)) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        res.json({ message: 'Login successful', userId: user.id });
+    });
+});
+
+// Route thêm người dùng mới
 app.post('/users', (req, res) => {
     const { name, email } = req.body;
     const query = `INSERT INTO users (name, email) VALUES (?, ?)`;
@@ -27,7 +53,7 @@ app.post('/users', (req, res) => {
     });
 });
 
-// Route để lấy danh sách người dùng
+// Route lấy danh sách người dùng
 app.get('/users', (req, res) => {
     const query = `SELECT * FROM users`;
     db.all(query, [], (err, rows) => {
@@ -38,7 +64,6 @@ app.get('/users', (req, res) => {
     });
 });
 
-// Khởi động server
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });
