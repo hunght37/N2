@@ -12,6 +12,6 @@
     "express-session": "^1.18.0",
     "sqlite3": "^5.1.7"
   },
-  "author": "Your Name",
+  "author": "devvkylejack",
   "license": "ISC"
 }
