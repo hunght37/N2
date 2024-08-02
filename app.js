@@ -9,7 +9,7 @@ const db = require('./database');
 // Cấu hình express để sử dụng thư mục public cho các tệp tĩnh
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public'))); // Đảm bảo phục vụ các tệp tĩnh từ thư mục 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Thêm thư mục 'private' cho các tệp bảo mật
 app.use('/private', express.static(path.join(__dirname, 'private')));
@@ -19,7 +19,7 @@ app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: false }
 }));
 
 // Route chính
@@ -44,7 +44,6 @@ app.post('/register', (req, res) => {
             console.error('Error inserting user:', err.message);
             return res.status(400).json({ error: err.message });
         }
-        // Chuyển hướng đến trang đăng nhập sau khi đăng ký thành công
         res.json({ redirect: '/auth/login.html' });
     });
 });
@@ -63,10 +62,8 @@ app.post('/login', (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Lưu thông tin phiên làm việc
         req.session.userId = user.id;
 
-        // Chuyển hướng đến trang chào mừng sau khi đăng nhập thành công
         res.json({ redirect: '/private/welcome.html' });
     });
 });
@@ -83,7 +80,7 @@ app.post('/logout', (req, res) => {
 
 // Route lấy thông tin người dùng hiện tại
 app.get('/current-user', (req, res) => {
-    const userId = req.session.userId; // Lấy ID người dùng từ session
+    const userId = req.session.userId;
 
     if (!userId) {
         return res.status(401).json({ error: 'Not authenticated' });
