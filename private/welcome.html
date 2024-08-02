@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <link rel="stylesheet" type="text/css" href="/private/welcome.css"> <!-- Liên kết đến tệp CSS -->
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Private Area</h1>
+    </header>
+
+    <main>
+        <p>Hello, <span id="userName">User</span>! You have successfully logged in.</p>
+        <p>Here are some of the things you can do:</p>
+        <ul>
+            <li><a href="/private/profile.html">View Your Profile</a></li>
+            <li><a href="/private/settings.html">Account Settings</a></li>
+            <li><a href="/private/activity.html">View Activity</a></li>
+            <li><a href="/private/contacts.html">Manage Contacts</a></li>
+            <li><a href="/private/reports.html">View Reports</a></li>
+            <li><a href="/private/notifications.html">Check Notifications</a></li>
+        </ul>
+        <button id="logoutButton">Log Out</button>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Your Company</p>
+    </footer>
+
+    <script>
+        // Hiển thị tên người dùng nếu có thông tin từ backend
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/current-user')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.name) {
+                        document.getElementById('userName').textContent = result.name;
+                    } else {
+                        console.error('Error:', result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+            // Xử lý đăng xuất
+            document.getElementById('logoutButton').addEventListener('click', function () {
+                fetch('/logout', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.redirect) {
+                        window.location.href = result.redirect;
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

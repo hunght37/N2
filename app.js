@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const session = require('express-session');
 const app = express();
 const port = 3000;
 const db = require('./database');
@@ -12,6 +13,14 @@ app.use(express.static(path.join(__dirname, 'public'))); // Đảm bảo phục 
 
 // Thêm thư mục 'private' cho các tệp bảo mật
 app.use('/private', express.static(path.join(__dirname, 'private')));
+
+// Cài đặt session
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 // Route chính
 app.get('/', (req, res) => {
@@ -53,8 +62,42 @@ app.post('/login', (req, res) => {
         if (!user || !bcrypt.compareSync(password, user.password)) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
+
+        // Lưu thông tin phiên làm việc
+        req.session.userId = user.id;
+
         // Chuyển hướng đến trang chào mừng sau khi đăng nhập thành công
         res.json({ redirect: '/private/welcome.html' });
+    });
+});
+
+// Route đăng xuất
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to log out' });
+        }
+        res.json({ redirect: '/auth/login.html' });
+    });
+});
+
+// Route lấy thông tin người dùng hiện tại
+app.get('/current-user', (req, res) => {
+    const userId = req.session.userId; // Lấy ID người dùng từ session
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const query = `SELECT name FROM users WHERE id = ?`;
+    db.get(query, [userId], (err, user) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({ name: user.name });
     });
 });
 
