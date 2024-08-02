@@ -3,7 +3,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Sử dụng biến môi trường PORT
 const db = require('./database');
 
 // Cấu hình express để sử dụng thư mục public cho các tệp tĩnh
@@ -16,10 +16,10 @@ app.use('/private', express.static(path.join(__dirname, 'private')));
 
 // Cài đặt session
 app.use(session({
-    secret: 'your-secret-key',
+    secret: 'your-secret-key', // Đổi 'your-secret-key' thành một khóa bí mật mạnh
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: { secure: process.env.NODE_ENV === 'production' } // Sử dụng true nếu triển khai trên HTTPS
 }));
 
 // Route chính
