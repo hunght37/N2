@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="/auth/auth.css"> <!-- Liên kết đến tệp CSS -->
 </head>
 <body>
     <h1>Login</h1>
@@ -33,11 +34,11 @@
             })
             .then(response => response.json())
             .then(result => {
-                console.log('Success:', result);
-                if (result.error) {
-                    alert('Error: ' + result.error);
+                if (result.redirect) {
+                    // Chuyển hướng đến trang chào mừng
+                    window.location.href = result.redirect;
                 } else {
-                    alert('Login successful!');
+                    alert('Error: ' + result.error);
                 }
             })
             .catch(error => {

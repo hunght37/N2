@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="/auth/auth.css"> <!-- Liên kết đến tệp CSS -->
 </head>
 <body>
     <h1>Register</h1>
@@ -37,11 +38,11 @@
             })
             .then(response => response.json())
             .then(result => {
-                console.log('Success:', result);
-                if (result.error) {
-                    alert('Error: ' + result.error);
+                if (result.redirect) {
+                    // Chuyển hướng đến trang đăng nhập
+                    window.location.href = result.redirect;
                 } else {
-                    alert('User registered successfully!');
+                    alert('Error: ' + result.error);
                 }
             })
             .catch(error => {

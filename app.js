@@ -1,28 +1,31 @@
 const express = require('express');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const app = express();
 const port = 3000;
 const db = require('./database');
 
+// Cấu hình express để sử dụng thư mục public cho các tệp tĩnh
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public'))); // Đảm bảo phục vụ các tệp tĩnh từ thư mục 'public'
+
+// Thêm thư mục 'private' cho các tệp bảo mật
+app.use('/private', express.static(path.join(__dirname, 'private')));
 
 // Route chính
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Route đăng ký người dùng
 app.post('/register', (req, res) => {
     const { name, email, password } = req.body;
 
-    // Kiểm tra xem dữ liệu có đầy đủ không
     if (!name || !email || !password) {
         return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
-    // Mã hóa mật khẩu
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     const query = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
@@ -32,7 +35,8 @@ app.post('/register', (req, res) => {
             console.error('Error inserting user:', err.message);
             return res.status(400).json({ error: err.message });
         }
-        res.json({ id: this.lastID });
+        // Chuyển hướng đến trang đăng nhập sau khi đăng ký thành công
+        res.json({ redirect: '/auth/login.html' });
     });
 });
 
@@ -49,19 +53,8 @@ app.post('/login', (req, res) => {
         if (!user || !bcrypt.compareSync(password, user.password)) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        res.json({ message: 'Login successful', userId: user.id });
-    });
-});
-
-// Route thêm người dùng mới
-app.post('/users', (req, res) => {
-    const { name, email } = req.body;
-    const query = `INSERT INTO users (name, email) VALUES (?, ?)`;
-    db.run(query, [name, email], function (err) {
-        if (err) {
-            return res.status(400).json({ error: err.message });
-        }
-        res.json({ id: this.lastID });
+        // Chuyển hướng đến trang chào mừng sau khi đăng nhập thành công
+        res.json({ redirect: '/private/welcome.html' });
     });
 });
 
